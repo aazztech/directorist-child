@@ -1,92 +1,98 @@
 <?php
 /**
-Plugin Name: Directorist - Child
-Plugin URI: https://aazztech.com/product/directorist-child
-Description: This is a child plugin of Directorist to customize & extend it.
-Version: 1.0.0
-Author: AazzTech
-Author URI: https://aazztech.com
-License: GPLv2 or later
-Text Domain: directorist-child
-Domain Path: /languages
+ * Plugin Name: Directorist - Child
+ * Plugin URI: http://directorist.com/
+ * Description: This is a helper plugin to customize Directorist.
+ * Version: 1.0.0
+ * Author: AazzTech
+ * Author URI: http://directorist.com/
+ * License: GPLv2 or later
+ * Text Domain: directorist-business-hours
+ * Domain Path: /languages
  */
+
 // prevent direct access to the file
-defined( 'ABSPATH' ) || die( 'No direct script access allowed!' );
+defined('ABSPATH') || die('No direct script access allowed!');
 
-// code goes here....
-/******************* Search box in one line *********************************/
-
-function atbdp_search_form_fields()
+final class Directorist_Child
 {
-    $categories = get_terms(ATBDP_CATEGORY, array('hide_empty' => 0));
-    $locations = get_terms(ATBDP_LOCATION, array('hide_empty' => 0));
-    $require_cat = get_directorist_option('require_search_category');
-    $require_cat = !empty($require_cat) ? "required" : "";
-    $require_loc = get_directorist_option('require_search_location');
-    $require_loc = !empty($require_loc) ? "required" : "";
-    $search_fields = get_directorist_option('search_tsc_fields', array('search_text', 'search_category', 'search_location'));
-    $search_placeholder = get_directorist_option('search_placeholder', esc_attr_x('What are you looking for?', 'placeholder', 'your_textdomain'));
-    $search_category_placeholder = get_directorist_option('search_category_placeholder', esc_html__('Select a category', 'your_textdomain'));
-    $search_location_placeholder = get_directorist_option('search_location_placeholder', esc_html__('Select a location', 'your_textdomain'));
-    $search_listing_text = get_directorist_option('search_listing_text', esc_html__('Search Listing', 'your_textdomain'));
-    $search_button = get_directorist_option('search_button', 1);
 
-    if (in_array('search_text', $search_fields)) { ?>
-        <div class="single_search_field search_query">
-            <input class="form-control search_fields" type="text" name="q"
-                   placeholder="<?php echo esc_html($search_placeholder); ?>">
-        </div>
-    <?php } ?>
-    <?php if (in_array('search_category', $search_fields)) { ?>
-    <div class="single_search_field search_category">
-        <select <?php echo esc_attr($require_cat); ?>
-            name="in_cat" class="search_fields form-control" id="at_biz_dir-category">
-            <option value=""><?php echo esc_html($search_category_placeholder); ?></option>
-            <?php
-            foreach ($categories as $category) {
-                ?>
-                <option id='atbdp_category'
-                        value='<?php echo esc_attr($category->term_id); ?>'>
-                    <?php echo esc_attr($category->name); ?>
-                </option>
-                <?php
-            } ?>
-        </select>
-    </div>
-<?php }
-    if (in_array('search_location', $search_fields)) { ?>
-        <div class="single_search_field search_location">
-            <select <?php echo esc_attr($require_loc); ?>
-                name="in_loc" class="search_fields form-control" id="at_biz_dir-location">
-                <option value=""><?php echo esc_html($search_location_placeholder); ?></option>
-                <?php
-                foreach ($locations as $location) {
-                    ?>
-                    <option id='atbdp_location'
-                            value='<?php echo esc_attr($location->term_id); ?>'>
-                        <?php echo esc_attr($location->name); ?>
-                    </option>
-                    <?php
-                } ?>
-            </select>
-        </div>
-    <?php }
-    if (!empty($search_button)) { ?>
-        <div class="atbd_submit_btn">
-            <button type="submit" class="btn btn-primary btn-lg btn_search">
-                <?php echo esc_attr($search_listing_text); ?>
-            </button>
-        </div>
-    <?php }
-}
-add_action('atbdp_search_form_fields', 'atbdp_search_form_fields');
-function atbdp_search_btn(){
-    return;
-}
-add_filter('atbdp_search_listing_button', 'atbdp_search_btn');
+    /** Singleton *************************************************************/
 
-function atbdp_custom_style(){
-   wp_enqueue_style('atbdp_custom_style', plugin_dir_url(__FILE__).'assets/public/style.css');
+    /**
+     * @var Directorist_Child The one true Directorist_Child
+     * @since 1.0
+     */
+    private static $instance;
+
+    /**
+     * Main Directorist_Child Instance.
+     *
+     * Insures that only one instance of Directorist_Child exists in memory at any one
+     * time. Also prevents needing to define globals all over the place.
+     *
+     * @return object|Directorist_Child The one true Directorist_Child
+     * @uses Directorist_Child::setup_constants() Setup the constants needed.
+     * @uses Directorist_Child::includes() Include the required files.
+     * @uses Directorist_Child::load_textdomain() load the language files.
+     * @see  Directorist_Child()
+     * @since 1.0
+     * @static
+     * @static_var array $instance
+     */
+    public static function instance()
+    {
+        if (!isset(self::$instance) && !(self::$instance instanceof Directorist_Child)) {
+            self::$instance = new Directorist_Child;
+            add_filter('redirect_canonical', array(self::$instance, 'atbdp_disable_redirect_canonical'));
+        }
+
+        return self::$instance;
+    }
+
+
+    public function atbdp_disable_redirect_canonical($redirect_url) {
+        if (is_single()) $redirect_url = false;
+        return $redirect_url;
+    }
+
+
+    private function __construct()
+    {
+        /*making it private prevents constructing the object*/
+    }
+
+    public function __clone()
+    {
+        // Cloning instances of the class is forbidden.
+        _doing_it_wrong(__FUNCTION__, __('Cheatin&#8217; huh?', 'directorist-business-hours'), '1.0');
+    }
+
+    public function __wakeup()
+    {
+        // Unserializing instances of the class is forbidden.
+        _doing_it_wrong(__FUNCTION__, __('Cheatin&#8217; huh?', 'directorist-business-hours'), '1.0');
+    }
+
+
 }
-add_action( 'wp_enqueue_scripts', 'atbdp_custom_style');
-/******************* END Search box in one line *********************************/
+
+/**
+ * The main function for that returns Directorist_Child
+ *
+ * The main function responsible for returning the one true Directorist_Child
+ * Instance to functions everywhere.
+ *
+ * Use this function like you would a global variable, except without needing
+ * to declare the global.
+ *
+ *
+ * @return object|Directorist_Child The one true Directorist_Child Instance.
+ * @since 1.0
+ */
+function Directorist_Child()
+{
+    return Directorist_Child::instance();
+}
+
+Directorist_Child(); // get the plugin running
