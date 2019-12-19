@@ -10,7 +10,6 @@
  * Text Domain: directorist-business-hours
  * Domain Path: /languages
  */
-
 // prevent direct access to the file
 defined('ABSPATH') || die('No direct script access allowed!');
 
@@ -50,12 +49,10 @@ final class Directorist_Child
         return self::$instance;
     }
 
-
     public function atbdp_disable_redirect_canonical($redirect_url) {
         if (is_single()) $redirect_url = false;
         return $redirect_url;
     }
-
 
     private function __construct()
     {
@@ -73,7 +70,6 @@ final class Directorist_Child
         // Unserializing instances of the class is forbidden.
         _doing_it_wrong(__FUNCTION__, __('Cheatin&#8217; huh?', 'directorist-business-hours'), '1.0');
     }
-
 
 }
 
