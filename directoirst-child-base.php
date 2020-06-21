@@ -43,17 +43,19 @@ final class Directorist_Child
     {
         if (!isset(self::$instance) && !(self::$instance instanceof Directorist_Child)) {
             self::$instance = new Directorist_Child;
-            add_filter('redirect_canonical', array(self::$instance, 'atbdp_disable_redirect_canonical'));
+            add_action('wp_enqueue_scripts', array(self::$instance, 'atbdp_custom_style'));
         }
 
         return self::$instance;
     }
 
-    public function atbdp_disable_redirect_canonical($redirect_url) {
-        if (is_single()) $redirect_url = false;
-        return $redirect_url;
+    public function atbdp_custom_style()
+    {
+        wp_register_style('atbdp_custom_style', plugin_dir_url(__FILE__) . 'assets/public/style.css');
+        wp_register_script('atbdp_custom_js', plugin_dir_url(__FILE__) . 'assets/public/main.js');
+        wp_enqueue_script('atbdp_custom_js');
+        wp_enqueue_style('atbdp_custom_style');
     }
-
     private function __construct()
     {
         /*making it private prevents constructing the object*/
